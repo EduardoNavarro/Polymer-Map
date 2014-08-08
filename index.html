@@ -1,10 +1,13 @@
-<!doctype html>
-<html>
 
+<!DOCTYPE html>
+<html>
 <head>
-  <title>Polymer Map(Leaflet) Example</title>
-  <meta name="viewport" content="width=device-width, minimum-scale=1.0, initial-scale=1.0 user-scalable=yes">
-  <script src="../components/platform/platform.js"></script>
+<!-- [START imports] -->
+
+  <meta name="viewport" content="width=device-width, minimum-scale=1.0, initial-scale=1.0">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <script src="components/platform/platform.js"></script>
   <link rel="import" href="components/font-roboto/roboto.html">
   <link rel="import" href="components/core-header-panel/core-header-panel.html">
   <link rel="import" href="components/core-toolbar/core-toolbar.html">
@@ -13,75 +16,238 @@
   <link rel="import" href="components/paper-icon-button/paper-icon-button.html">
   <link rel="import" href="components/core-icons/core-icons.html">
   <link rel="import" href="components/paper-input/paper-input.html" >
-  
-
-  <link rel="import" href="../components/paper-shadow/paper-shadow.html">
-  <!--
-  <link rel="import" href="../components/leaflet-map/leaflet-map.html">
-  -->
-
+  <link rel="import" href="components/core-menu/core-menu.html">
+  <link rel="import" href="components/core-item/core-item.html">
+  <link rel="import" href="components/core-drawer-panel/core-drawer-panel.html">
+  <link rel="import" href="components/core-scaffold/core-scaffold.html">
+  <link rel="import" href="components/core-icon/core-icon.html">
+  <link rel="import" href="components/paper-button/paper-button.html">
+  <link rel="import" href="components/paper-toast/paper-toast.html">
+ 
   <link rel="stylesheet" href="http://cdn.leafletjs.com/leaflet-0.7.3/leaflet.css" />
   <script src="http://cdn.leafletjs.com/leaflet-0.7.3/leaflet.js"></script>
-  
-    
-  <style >
-  html,body {
-    z-index: 1;
-    height: 100%;
-    margin: 0;
-    background-color: #E5E5E5;
-    font-family: 'RobotoDraft', sans-serif;
-  }
-  core-toolbar {
-    z-index: 5;
-    height: 10%;
-    background: #03a9f4;
-    width: 100%;
-    margin: 5px;
-    color: white;
-    -webkit-overflow-scrolling: touch; 
-  }
-  #map { 
-    z-index: 0;
-    height: 90%;
-    width: 100%;
-    -webkit-user-select: none;
-    -moz-user-select: none;
-    -ms-user-select: none;
-    user-select: none;
-  }
+ <!--
+  <link rel="import" href="../components/leaflet-map/leaflet-map.html">
+  -->
+<!-- [END imports] -->
+    <style shim-shadowdom>
+      /* [START styles] */
+      body {
+        font-family: sans-serif;
+      }
 
-  </style>
+      #navheader {
+        background-color: #56BA89;
+      }
+      #crewheader {
+        height: 50px;
+        background-color: #ffffff;
+      }
+
+      #scaff {
+        background-color: #4285f4;
+      }
+
+      .content {
+        height: 100%;
+        width: 100%;
+      }
+      /* [END styles] */
+      /* secret demo-only styles */
+      core-scaffold /deep/ #drawer {
+        width: 140px;
+      }
+      core-scaffold /deep/ #main {
+        left: 140px;
+      }
+
+      core-icon[icon="search"] {
+        fill: #56BA89;
+        padding: 3px;
+      }
+
+      core-item {
+        padding-bottom: 3px;
+      }
+
+      #crewbtn {
+        padding-bottom: 2px;
+        border-radius: 2;
+      }
+
+      #map { 
+        height: 800px;
+        width: 1600px;
+      }
+
+      paper-button::shadow #ripple {
+        color: gray;
+      }
+    core-list {
+      height: 1000px;
+      width: 250px;
+    }
+
+    paper-toast {
+      bottom: 5;
+      right: 5;
+    }
+    </style>
 </head>
+<body unresolved>
+  <!-- [START html] -->
+  <core-scaffold id="scaffold" responsiveWidth="600px">
 
-<body unresolved touch-action="auto">
-  <core-toolbar style="background: #3f51b5;">
-    <paper-shadow z="3" reflect=true></paper-shadow>
-    <paper-icon-button icon="menu"></paper-icon-button>
-    <span flex>Working with Polymer</span>
-    <paper-input icon="more-vert" label="Type something..."></paper-input>
-    <paper-icon-button icon="refresh"></paper-icon-button>
-    <paper-icon-button icon="more-vert"></paper-icon-button>
-  </core-toolbar>
-  <div id="map">
-  </div>
-    <!--<leaflet-map id="map" latitude="51.505" longitude="-0.09" zoom="13"></leaflet-map>-->
+    <core-header-panel navigation flex>
+      <core-toolbar id="navheader">
+        <span>Menu</span>
+      </core-toolbar>
 
-  <script>
-    var map = L.map('map').setView([51.505, -0.09], 13);
-    L.tileLayer('https://{s}.tiles.mapbox.com/v3/{id}/{z}/{x}/{y}.png', {
-        maxZoom: 18,
-        attribution: 'Map data &copy; <a href="http://openstreetmap.org">OpenStreetMap</a> contributors, ' +
-            '<a href="http://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>, ' +
-            'Imagery © <a href="http://mapbox.com">Mapbox</a>',
-        id: 'examples.map-i86knfo3'
-    }).addTo(map);
+      <core-toolbar id="crewheader">
+        <span>Ubicacion cuadrillas.</span>
+      </core-toolbar>
+      <core-menu>
+        <paper-button id="crewbtn" label="Cuadrilla: 1234" icon="search" onclick="locateCrew()"></paper-button>
+        <paper-button id="crewbtn" label="Cuadrilla: 5678" icon="search" onclick="locateCrew()"></paper-button>
+        <paper-button id="crewbtn" label="Cuadrilla: 9123" icon="search" onclick="locateCrew()"></paper-button>
+        <paper-button id="crewbtn" label="Cuadrilla: 8526" icon="search" onclick="locateCrew()"></paper-button>
 
-    var tabs = document.querySelector('paper-tabs');
-    tabs.addEventListener('core-select', function(e) {
-      console.log("tab change: " + e.target.getAttribute('name') +" selected = " + e.detail.isSelected);
-      console.log("Selected: " + tabs.selected);
-    });
+        <core-list data="{{data}}" height="80">
+          <template>
+            <div class="{{ {selected: selected} | tokenList }}">List row: {{index}}</div>
+          </template>
+        </core-list>
+
+      </core-menu>
+    </core-header-panel>
+
+    <span tool>Dispatch Manager</span>
+    <div class="content" >
+        <div id="map"></div>
+    </div>
+  </core-scaffold>
+
+   <script>
+      initMap();
+      var map;
+
+      function locateCrew() {
+          showTast();
+          //allData += "C|654321|-34.579|-58.48676|-34.57844|-58.48575|-34.57954|-58.48484|-34.58008|-58.4858";
+
+          var carIcon = L.icon({
+              iconUrl: 'car.png',
+              iconSize:     [48, 48], // size of the icon
+              shadowSize:   [48, 48], // size of the shadow
+              iconAnchor:   [48, 48], // point of the icon which will correspond to marker's location
+              shadowAnchor: [32, 32],  // the same for the shadow
+              popupAnchor:  [-3, -76] // point from which the popup should open relative to the iconAnchor
+          });
+
+          var docIcon = L.icon({
+              iconUrl: 'doc.png',
+              iconSize:     [64, 64], // size of the icon
+              shadowSize:   [64, 64], // size of the shadow
+              iconAnchor:   [64, 64], // point of the icon which will correspond to marker's location
+              shadowAnchor: [32, 32],  // the same for the shadow
+              popupAnchor:  [-3, -76] // point from which the popup should open relative to the iconAnchor
+          });
+
+          L.marker([-34.579, -58.48676], {icon: carIcon}).addTo(map).bindPopup("Cuadrilla!");
+          L.marker([-34.574, -58.49271], {icon: carIcon}).addTo(map).bindPopup("Cuadrilla!");
+
+
+
+          var marker1 = L.marker([-34.578, -58.49709], {icon: docIcon, draggable:'true'});
+          marker1.on('dragend', function(event){
+            var marker = event.target;
+            var position = marker.getLatLng();
+            marker1.setLatLng(new L.LatLng(-34.578, -58.49709),{draggable:'true'});
+            document.querySelector('#dispatch-doc-toast').show();
+          });
+          marker1.addTo(map).bindPopup("Cuadrilla!");
+
+          var marker2 = L.marker([-34.578, -58.49018], {icon: docIcon, draggable:'true'});
+          marker2.on('dragend', function(event){
+            var marker = event.target;
+            var position = marker.getLatLng();
+            marker2.setLatLng(new L.LatLng(-34.578, -58.49018),{draggable:'true'});
+            document.querySelector('#dispatch-doc-toast').show();
+          });
+          marker2.addTo(map).bindPopup("Cuadrilla!");
+
+          var marker3 = L.marker([-34.577, -58.48623], {icon: docIcon, draggable:'true'});
+          marker3.on('dragend', function(event){
+            var marker = event.target;
+            var position = marker.getLatLng();
+            marker3.setLatLng(new L.LatLng(-34.577, -58.48623),{draggable:'true'});
+            document.querySelector('#dispatch-doc-toast').show();
+          });
+          marker3.addTo(map).bindPopup("Cuadrilla!");
+
+          var marker4 = L.marker([-34.575, -58.48571], {icon: docIcon, draggable:'true'});
+          marker4.on('dragend', function(event){
+            var marker = event.target;
+            var position = marker.getLatLng();
+            marker4.setLatLng(new L.LatLng(-34.575, -58.48571),{draggable:'true'});
+            document.querySelector('#dispatch-doc-toast').show();
+          });
+          marker4.addTo(map).bindPopup("Cuadrilla!");
+
+
+          /*
+          L.marker([-34.578, -58.49709], {icon: docIcon, draggable:'true'}).addTo(map).bindPopup("Documento!");
+          L.marker([-34.578, -58.49018], {icon: docIcon, draggable:'true'}).addTo(map).bindPopup("Documento!");
+          L.marker([-34.577, -58.48623], {icon: docIcon, draggable:'true'}).addTo(map).bindPopup("Documento!");
+          L.marker([-34.575, -58.48571], {icon: docIcon, draggable:'true'}).addTo(map).bindPopup("Documento!");
+          L.marker([-34.573, -58.48932], {icon: docIcon, draggable:'true'}).addTo(map).bindPopup("Documento!");
+
+          Lat, Lon : -34.574535526743546, -58.49271297454834
+          Lat, Lon : -34.57607262887007, -58.49910736083984
+          Lat, Lon : -34.578, -58.49709
+          Lat, Lon : -34.578, -58.49018
+          Lat, Lon : -34.577, -58.48623
+          Lat, Lon : -34.575, -58.48571
+          Lat, Lon : -34.573, -58.48932
+          */
+
+
+          map.panTo(new L.LatLng(-34.579, -58.48676));
+      }
+
+      function onDragEndMarker() {
+        showTast();
+      }
+
+      function showTast() {
+        document.querySelector('#scaffold').togglePanel();
+        document.querySelector('#locating-crew').show();
+      }
+
+      function showDispatchedTast() {
+        document.querySelector('#locating-crew').text="Documento D-14-08-0001 despachado!".show();
+      }
+
+      function initMap() {
+        map = L.map('map', {zoomControl: false}).setView([-34.579, -58.48676], 16);
+        L.control.zoom({position:'bottomright'}).addTo(map);
+        L.tileLayer('https://{s}.tiles.mapbox.com/v3/{id}/{z}/{x}/{y}.png', {
+            maxZoom: 18,
+            attribution: 'Map data &copy; <a href="http://openstreetmap.org">OpenStreetMap</a> contributors, ' +
+                '<a href="http://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>, ' +
+                'Imagery © <a href="http://mapbox.com">Mapbox</a>',
+            id: 'examples.map-i86knfo3'
+        }).addTo(map);
+
+
+
+        map.on('click', function(e) {
+           console.log("Lat, Lon : " + e.latlng.lat + ", " + e.latlng.lng);
+        });
+      }
   </script>
+  <paper-toast id="locating-crew" class="capsule" text="Localidando cuadrilla..." duration="1000"></paper-toast>
+  <paper-toast id="dispatch-doc-toast" class="capsule" text="Documento D-14-08-0001 despachado!." duration="1000"></paper-toast>
+  <!-- [END html] -->
 </body>
 </html>
